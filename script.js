@@ -1,39 +1,32 @@
-// initialize Rive instance with the canvas and state machine
-const riveInstance = new rive.Rive({
-  src: "gum_boy.riv",
-  canvas: document.getElementById("riveCanvas"),
-  stateMachines: "MouthSync",
-  autoplay: true,
-  onLoad: () => {
-    riveInstance.resizeDrawingSurfaceToCanvas();
-  },
-});
+document.getElementById("setVisemeBtn").addEventListener("click", () => {
+  const riveInstance = new rive.Rive({
+    src: "gum_boy.riv",
+    canvas: document.getElementById("riveCanvas"),
+    autoplay: true,
+    artboard: "main_artboard",
+    stateMachines: "MouthSync",
+    autoBind: true,
+    onLoad: () => {
+      const vmi = riveInstance.viewModelInstance;
+      const visemeProp = vmi.number("viseme_value");
 
-// viseme sequence for testing
-const fakeVisemeSequence = [
-  { time: 0, viseme: 3 },
-  { time: 500, viseme: 5 },
-  { time: 1000, viseme: 7 },
-  { time: 1500, viseme: 10 },
-  { time: 2000, viseme: 14 },
-  { time: 2500, viseme: 2 },
-  { time: 3000, viseme: 1 },
-];
+      if (!visemeProp) {
+        console.error("Unable to get viseme_value property!");
+        return;
+      }
 
-// button for playing audio and triggering viseme changes
-document.getElementById("playBtn").addEventListener("click", () => {
-  const audio = new Audio("Davis.wav");
-  audio.play();
+      const visemeSequence = [1, 3, 6, 2, 5, 8, 0, 4, 7, 0];
+      const visemeDuration = 200; // each viseme lasts 200ms
+      let index = 0;
 
-  const input = riveInstance.stateMachineInputs("MouthSync").find(i => i.name === "viseme");
-  if (!input) {
-    console.error("cannot find 'viseme' input！");
-    return;
-  }
-
-  fakeVisemeSequence.forEach(({ time, viseme }) => {
-    setTimeout(() => {
-      input.value = viseme;
-    }, time);
+      const interval = setInterval(() => {
+        visemeProp.value = visemeSequence[index];
+        index++;
+        if (index >= visemeSequence.length) {
+          clearInterval(interval);
+          console.log("Viseme sequence completed.");
+        }
+      }, visemeDuration);
+    }
   });
 });
